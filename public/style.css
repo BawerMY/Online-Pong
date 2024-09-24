@@ -1,0 +1,55 @@
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+}
+
+#create-game-menu {
+    display: none;
+}
+
+#join-game-menu {
+    display: none;
+    gap: 8px;
+    flex-direction: column;
+}
+
+#game-canvas {
+    display: none;
+    width: 100vw;
+    height: 50vw;
+    background: #000;
+}
+
+#main-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#main-menu div {
+    display: flex;
+    gap: 8px;
+}
+
+#game-id {
+    text-align: center;
+}
+
+#score-table {
+    position: fixed;
+    top: 0;
+    left: 50vw;
+    transform: translate(-50%, 0);
+    display: none;
+}
+
+#exit {
+     position: fixed;
+     top: 0;
+     right: 0;
+     display: none;
+}

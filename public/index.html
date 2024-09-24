@@ -1,0 +1,33 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Online Pong</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <div id="main-menu">
+        <button id="create-game-button">create game</button>
+        <div>
+            <input id="game-id-input" type="text">
+            <button id="join-game-button">join game</button>
+        </div>
+    </div>
+    <div id="create-game-menu">
+        <div id="game-id"></div>
+        <button id="start-button" disabled>start</button>
+        <button class="exit-button">exit</button>
+    </div>
+    <div id="join-game-menu">
+        wainting for the host to start
+        <button class="exit-button">exit</button>
+    </div>
+    <div id="score-table">0-0</div>
+    <button id="exit">exit</button>
+    <canvas width="1000" height="500" id="game-canvas"></canvas>
+<script src="/socket.io/socket.io.js"></script>
+<script src="index.js"></script>
+</body>
+</html>
