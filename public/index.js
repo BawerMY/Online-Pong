@@ -44,6 +44,7 @@ document.getElementById("start-button").addEventListener("click", e => {
     socket.emit("game-start")
     document.getElementById("create-game-menu").style.display = "none"
     document.getElementById("score-table").style.display = "block"
+    document.getElementById("score-table").innerText = "0-0"
     document.getElementById("exit").style.display = "block"
     document.getElementById("game-canvas").style.display = "block"
 })
@@ -51,6 +52,7 @@ document.getElementById("start-button").addEventListener("click", e => {
 socket.on("game-start", () => {
     document.getElementById("join-game-menu").style.display = "none";
     document.getElementById("score-table").style.display = "block"
+    document.getElementById("score-table").innerText = "0-0"
     document.getElementById("exit").style.display = "block"
     document.getElementById("game-canvas").style.display = "block"
 })
@@ -124,23 +126,33 @@ document.addEventListener("keyup", e => {
     }
 })
 
-document.getElementById('exit').addEventListener("click", e => {
+function returnMenu () {
     canvas.style.display = "none";
     document.getElementById("score-table").style.display = "none"
     document.getElementById("exit").style.display = "none"
     document.getElementById("main-menu").style.display = "flex"
+}
+
+document.getElementById('exit').addEventListener("click", e => {
+    returnMenu()
 })
 
 socket.on("opponent-disconnected", () => {
-    canvas.style.display = "none"
-    document.getElementById("score-table").style.display = "none"
-    document.getElementById("exit").style.display = "none"
-    document.getElementById("main-menu").style.display = "flex"
-    document.getElementById("join-game-menu").style.display = "none"
-    document.getElementById("create-game-menu").style.display = "none"
+    console.log("opponent-disconnected")
     alert("Opponent disconnected")
+    returnMenu()
 })
 
 document.getElementById("exit").addEventListener("click", e => {
     socket.emit("exit")
+})
+
+socket.on("game-won", () => {
+    alert("game-won")
+    returnMenu()
+})
+
+socket.on("game-lost", () => {
+    alert("game-lost")
+    returnMenu()
 })

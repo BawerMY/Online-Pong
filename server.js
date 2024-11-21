@@ -9,8 +9,6 @@ app.get('/', function(req, res) {
     res.sendfile('public/index.html');
 });
 
-let lastGameId = 0
-
 class Game {
     values = {
         canvasWidth: 1000,
@@ -42,97 +40,109 @@ class Game {
             y: -0
         }
         this.ballSpeed = 3
-        this.play = (socket, toId) => {
-            setInterval(() => {
-                this.firstPlayerY += this.firstPlayerMove * this.values.moveSpeed
-                this.ballPosition.x += this.ballDirection.x * this.ballSpeed
-                this.ballPosition.y += this.ballDirection.y
-                if (this.firstPlayerY < this.values.playerHeight / 2) this.firstPlayerY = this.values.playerHeight / 2
-                if (this.firstPlayerY > this.values.canvasHeight - this.values.playerHeight / 2) this.firstPlayerY = this.values.canvasHeight - this.values.playerHeight / 2
-                this.secondPlayerY += this.secondPlayerMove * this.values.moveSpeed
-                if (this.secondPlayerY < this.values.playerHeight / 2) this.secondPlayerY = this.values.playerHeight / 2
-                if (this.secondPlayerY > this.values.canvasHeight - this.values.playerHeight / 2) this.secondPlayerY = this.values.canvasHeight - this.values.playerHeight / 2
-                const game = {
-                    firstPlayerY: this.firstPlayerY,
-                    secondPlayerY: this.secondPlayerY,
-                    ballPosition: this.ballPosition,
+    }
+    play = (socket, toId) => {
+        this.intervalId = setInterval(() => {
+            this.firstPlayerY += this.firstPlayerMove * this.values.moveSpeed
+            this.ballPosition.x += this.ballDirection.x * this.ballSpeed
+            this.ballPosition.y += this.ballDirection.y
+            if (this.firstPlayerY < this.values.playerHeight / 2) this.firstPlayerY = this.values.playerHeight / 2
+            if (this.firstPlayerY > this.values.canvasHeight - this.values.playerHeight / 2) this.firstPlayerY = this.values.canvasHeight - this.values.playerHeight / 2
+            this.secondPlayerY += this.secondPlayerMove * this.values.moveSpeed
+            if (this.secondPlayerY < this.values.playerHeight / 2) this.secondPlayerY = this.values.playerHeight / 2
+            if (this.secondPlayerY > this.values.canvasHeight - this.values.playerHeight / 2) this.secondPlayerY = this.values.canvasHeight - this.values.playerHeight / 2
+            const game = {
+                firstPlayerY: this.firstPlayerY,
+                secondPlayerY: this.secondPlayerY,
+                ballPosition: this.ballPosition,
+            }
+            if (this.ballPosition.x >= this.values.canvasWidth - this.values.playerWidth - this.values.ballRadius) {
+                if (Math.abs(this.ballPosition.y - this.secondPlayerY) <= this.values.playerHeight / 2) {
+                    const touchValue = this.ballPosition.y - this.secondPlayerY
+                    this.ballDirection.x *= -1
+                    this.ballDirection.y = touchValue / (this.values.playerHeight / 2) * this.ballSpeed
+                    this.ballSpeed += this.values.ballSpeedIncrease
                 }
-                if (this.ballPosition.x >= this.values.canvasWidth - this.values.playerWidth - this.values.ballRadius) {
-                    if (Math.abs(this.ballPosition.y - this.secondPlayerY) <= this.values.playerHeight / 2) {
-                        const touchValue = this.ballPosition.y - this.secondPlayerY
-                        this.ballDirection.x *= -1
-                        this.ballDirection.y = touchValue / (this.values.playerHeight / 2) * this.ballSpeed
-                        this.ballSpeed += this.values.ballSpeedIncrease
-                    }
+            }
+            if (this.ballPosition.x - this.values.ballRadius <= this.values.playerWidth) {
+                if (Math.abs(this.ballPosition.y - this.firstPlayerY) <= this.values.playerHeight / 2) {
+                    const touchValue = this.ballPosition.y - this.firstPlayerY
+                    this.ballDirection.x *= -1
+                    this.ballDirection.y = touchValue / (this.values.playerHeight / 2) * this.ballSpeed
+                    this.ballSpeed += this.values.ballSpeedIncrease
                 }
-                if (this.ballPosition.x - this.values.ballRadius <= this.values.playerWidth) {
-                    if (Math.abs(this.ballPosition.y - this.firstPlayerY) <= this.values.playerHeight / 2) {
-                        const touchValue = this.ballPosition.y - this.firstPlayerY
-                        this.ballDirection.x *= -1
-                        this.ballDirection.y = touchValue / (this.values.playerHeight / 2) * this.ballSpeed
-                        this.ballSpeed += this.values.ballSpeedIncrease
-                    }
+            }
+            if (this.ballPosition.y > this.values.canvasHeight - this.values.ballRadius || this.ballPosition.y < this.values.ballRadius) {
+                this.ballDirection.y *= -1
+            }
+            if (this.ballPosition.x < this.values.ballRadius) {
+                this.score.p2 += 1
+                this.firstPlayerY = 250
+                this.secondPlayerY = 250
+                socket.emit("score", this.score)
+                socket.to(toId).emit("score", this.score)
+                this.ballPosition = {
+                    x: this.values.canvasWidth / 2,
+                    y: this.values.canvasHeight / 2
                 }
-                if (this.ballPosition.y > this.values.canvasHeight - this.values.ballRadius || this.ballPosition.y < this.values.ballRadius) {
-                    this.ballDirection.y *= -1
+                this.ballDirection = {
+                    x: -1,
+                    y: 0
                 }
-                if (this.ballPosition.x < this.values.ballRadius) {
-                    this.score.p2 += 1
-                    socket.emit("score", this.score)
-                    socket.to(toId).emit("score", this.score)
-                    this.ballPosition = {
-                        x: this.values.canvasWidth / 2,
-                        y: this.values.canvasHeight / 2
-                    }
-                    this.ballDirection = {
-                        x: -1,
-                        y: 0
-                    }
-                    this.ballSpeed = this.values.ballSpeed
+                this.ballSpeed = this.values.ballSpeed
+            }
+            if (this.ballPosition.x > this.values.canvasWidth - this.values.ballRadius) {
+                this.score.p1 += 1
+                this.firstPlayerY = 250
+                this.secondPlayerY = 250
+                socket.emit("score", this.score)
+                socket.to(toId).emit("score", this.score)
+                this.ballPosition = {
+                    x: this.values.canvasWidth / 2,
+                    y: this.values.canvasHeight / 2
                 }
-                if (this.ballPosition.x > this.values.canvasWidth - this.values.ballRadius) {
-                    this.score.p1 += 1
-                    socket.emit("score", this.score)
-                    socket.to(toId).emit("score", this.score)
-                    this.ballPosition = {
-                        x: this.values.canvasWidth / 2,
-                        y: this.values.canvasHeight / 2
-                    }
-                    this.ballDirection = {
-                        x: 1,
-                        y: 0
-                    }
-                    this.ballSpeed = this.values.ballSpeed
+                this.ballDirection = {
+                    x: 1,
+                    y: 0
                 }
-                if (this.score.p1 === 15) {
-                    if (socket.id === this.firstPlayer) {
-                        socket.emit("game-won", this.score)
-                        socket.to(toId).emit("lost-won", this.score)
-                    } else {
-                        socket.emit("game-lost", this.score)
-                        socket.to(toId).emit("lost-lost", this.score)
-                    }
-                    delete games[io.sockets.sockets.get(this.firstPlayer).playingGameId]
-                    console.log(games)
-                } else if (this.score.p2 === 15) {
-                    if (socket.id === this.firstPlayer) {
-                        socket.emit("game-lost", this.score)
-                        socket.to(toId).emit("game-won", this.score)
-                    } else {
-                        socket.emit("game-won", this.score)
-                        socket.to(toId).emit("game-lost", this.score)
-                    }
-                    delete games[io.sockets.sockets.get(this.firstPlayer).playingGameId]
-                    console.log(games)
+                this.ballSpeed = this.values.ballSpeed
+            }
+            if (this.score.p1 === 15) {
+                if (socket.id === this.firstPlayer) {
+                    socket.emit("game-won")
+                    socket.to(toId).emit("game-lost")
+                } else {
+                    socket.emit("game-lost")
+                    socket.to(toId).emit("game-won")
                 }
+                delete games[io.sockets.sockets.get(this.firstPlayer).playingGameId]
+                io.sockets.sockets.get(socket.id).playingGameId = null
+                io.sockets.sockets.get(toId).playingGameId = null
+                clearInterval(this.intervalId)
+            } else if (this.score.p2 === 15) {
+                if (socket.id === this.firstPlayer) {
+                    socket.emit("game-lost")
+                    socket.to(toId).emit("game-won")
+                } else {
+                    socket.emit("game-won")
+                    socket.to(toId).emit("game-lost")
+                }
+                delete games[io.sockets.sockets.get(this.firstPlayer).playingGameId]
+                io.sockets.sockets.get(socket.id).playingGameId = null
+                io.sockets.sockets.get(toId).playingGameId = null
+                clearInterval(this.intervalId)
+            } else {
                 socket.emit("game", game)
                 socket.to(toId).emit("game", game)
-            }, 16)
-        }
+            }
+        }, 16)
     }
+
 }
 
 let games = {}
+
+let lastGameId = 0
 
 io.on('connection', socket => {
     let playingGameId = null
@@ -160,7 +170,7 @@ io.on('connection', socket => {
     })
 
     socket.on('exit-lobby', () => {
-        if (playingGameId !== null) {
+        if (games[playingGameId]) {
             if (games[playingGameId].firstPlayer === socket.id) {
                 if (games[playingGameId].secondPlayer !== null) {
                     socket.to(games[playingGameId].secondPlayer).emit("opponent-disconnected")
@@ -183,6 +193,7 @@ io.on('connection', socket => {
             socket.to(games[playingGameId].firstPlayer).emit("opponent-disconnected")
             io.sockets.sockets.get(games[playingGameId].firstPlayer).playingGameId = null
         }
+        clearInterval(games[playingGameId].intervalId)
         delete games[playingGameId]
         playingGameId = null
     })
@@ -203,7 +214,7 @@ io.on('connection', socket => {
     })
 
     socket.on('disconnect', () => {
-        if (playingGameId) {
+        if (games[playingGameId]) {
             if (games[playingGameId].firstPlayer === socket.id) {
                 socket.to(games[playingGameId].secondPlayer).emit('opponent-disconnected');
                 io.sockets.sockets.get(games[playingGameId].secondPlayer).playingGameId = null
@@ -212,7 +223,6 @@ io.on('connection', socket => {
                 io.sockets.sockets.get(games[playingGameId].firstPlayer).playingGameId = null
             }
             delete games[playingGameId]
-            // end game
         }
     })
 })
