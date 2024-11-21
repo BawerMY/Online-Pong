@@ -1,4 +1,4 @@
-const socket = io("http://localhost:3000");
+const socket = io("/");
 
 document.getElementById("create-game-button").addEventListener("click", e => {
     socket.emit("create-game");
