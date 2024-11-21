@@ -5,9 +5,7 @@ const io = require('socket.io')(server);
 const cors = require('cors');
 const port = 3000;
 
-app.use(cors({
-    origin: true,
-}))
+app.use(cors())
 app.use(express.static('public'));
 app.get('/', function(req, res) {
     res.sendfile('public/index.html');
