@@ -2,8 +2,12 @@ const express = require('express');
 const app = express()
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
+const cors = require('cors');
 const port = 3000;
 
+app.use(cors({
+    origin: true,
+}))
 app.use(express.static('public'));
 app.get('/', function(req, res) {
     res.sendfile('public/index.html');
